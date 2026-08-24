@@ -1,27 +1,31 @@
-# 🐍 Fourier Toolbox
+# 🪟 Fourier Windows (Desktop & Python Suite)
 
-Biblioteca Python modular para computação científica, análise de **Séries e Transformadas de Fourier**, integração numérica por quadratura de Gauss-Legendre, visualização gráfica de alta resolução e síntese de áudio harmônico.
+Suíte científica nativa para Windows e biblioteca Python dedicada à análise de **Séries e Transformadas de Fourier**, integração numérica de alta precisão (Quadratura de Gauss-Legendre), plotagem de alta resolução com Matplotlib e síntese acústica WAV.
+
+> **Nota de Ecossistema:** Este repositório é a versão dedicada para **Windows / Desktop**. O projeto Android móvel reside separadamente no repositório `fourier-toolbox`.
 
 ---
 
-## 📦 Instalação
+## 📦 Instalação no Windows
 
-```bash
-# Instalação direta do repositório local
-git clone https://github.com/londresarthur/fourier-toolbox.git
-cd fourier-toolbox
+```powershell
+# Clonar o repositório
+git clone https://github.com/londresarthur/fourier-windows.git
+cd fourier-windows
+
+# Instalar em modo de desenvolvimento
 pip install -e .
 ```
 
 ---
 
-## 🚀 Uso Rápido em Python
+## 🚀 Uso em Scripts Python
 
 ```python
 import numpy as np
 from fourier_toolbox import FourierEngine, plot_series, synthesize_wav
 
-# 1. Definir função periódica e ordem harmônica
+# 1. Inicializar motor de cálculo com L=pi e N=15
 engine = FourierEngine(
     L=np.pi,
     N=15,
@@ -29,8 +33,8 @@ engine = FourierEngine(
     mode='even'
 )
 
-# 2. Avaliar aproximação S_N(x) e Parseval
-print(f"a0 = {engine.a0:.4f}")
+# 2. Obter coeficientes e relatório de Parseval
+print(f"Termo Médio (DC) a0 = {engine.a0:.4f}")
 parseval = engine.parseval_analysis()
 print(f"Conservação de Energia: {parseval['conservation_ratio'] * 100:.2f}%")
 
@@ -43,30 +47,29 @@ synthesize_wav(engine, "saida.wav", duration=2.0, base_freq=220.0)
 
 ---
 
-## 💻 Interface de Linha de Comando (CLI)
+## 💻 CLI do Windows (Prompt / PowerShell)
 
-```bash
-# Calcular coeficientes do preset |x| e imprimir fórmula LaTeX
-python -m fourier_toolbox --preset abs_x -N 15 --latex
+```powershell
+# Linha de comando para análise de Fourier no Windows
+fourier-windows --preset abs_x -N 15 --latex
 
-# Gerar gráfico vetorial e exportar síntese de áudio
-python -m fourier_toolbox --preset square_wave -N 30 --save-plot onda_quadrada.png --audio onda_quadrada.wav
+# Plotar onda e exportar áudio WAV
+fourier-windows --preset square_wave -N 30 --save-plot onda.png --audio som.wav
 ```
 
 ---
 
-## 📚 Documentação
+## 📚 Documentação (Framework Diátaxis)
 
-A documentação segue o framework [Diátaxis](https://diataxis.fr/):
-- **[🚀 Tutoriais](docs/tutorials/)**: Primeiros passos práticos
-- **[🛠️ Guias How-To](docs/how-to/)**: Receitas de exportação e customização
-- **[📖 Referência](docs/reference/)**: Especificações técnicas da API
+- **[🚀 Tutoriais](docs/tutorials/)**: Primeiros passos práticos no Windows
+- **[🛠️ Guias How-To](docs/how-to/)**: Exportação de áudio WAV e gráficos SVG/PNG
+- **[📖 Referência](docs/reference/)**: Especificação de APIs e classes
 - **[💡 Explicação](docs/explanation/)**: Teoria matemática de quadratura e Dirichlet
 
 ---
 
 ## 🧪 Testes Unitários
 
-```bash
+```powershell
 python -m unittest discover -s tests
 ```
