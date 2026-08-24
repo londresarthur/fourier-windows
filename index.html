@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fourier Windows — Suíte Científica & Python Desktop</title>
+  <meta name="description" content="Suíte científica nativa para Windows e biblioteca Python dedicada à análise de Séries e Transformadas de Fourier, quadratura Gauss-Legendre e síntese WAV." />
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- KaTeX -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="if (typeof renderMathInElement === 'function') { renderMathInElement(document.body, { delimiters: [ {left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}, {left: '\\(', right: '\\)', display: false}, {left: '\\[', right: '\\]', display: true} ], throwOnError: false }); }"></script>
+
+  <style>
+    body {
+      background: radial-gradient(circle at 50% 0%, #0f172a 0%, #020617 100%);
+      color: #f8fafc;
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(51, 65, 85, 0.5);
+    }
+    .glass-card:hover {
+      border-color: rgba(14, 165, 233, 0.4);
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #38bdf8 0%, #34d399 50%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-white">
+
+  <!-- NAVBAR -->
+  <header class="sticky top-0 z-50 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-emerald-400 flex items-center justify-center text-slate-950 font-bold shadow-lg shadow-cyan-500/20">
+          🪟
+        </div>
+        <div>
+          <span class="font-bold text-base text-white tracking-tight">Fourier Windows</span>
+          <span class="text-[10px] ml-1.5 px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 font-mono border border-cyan-500/20">v0.1.0</span>
+        </div>
+      </div>
+
+      <nav class="flex items-center gap-4 text-xs font-semibold text-slate-300">
+        <a href="https://londresarthur.github.io/usp/" target="_blank" class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/30 transition-all">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+          <span>Fourier Studio Web (USP)</span>
+        </a>
+        <a href="https://github.com/londresarthur/fourier-windows" target="_blank" class="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 transition-colors flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path></svg>
+          <span>GitHub</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO SECTION -->
+  <section class="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      
+      <!-- Text & CTAs (7 cols) -->
+      <div class="lg:col-span-7 flex flex-col gap-6">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold w-fit">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          Versão Dedicada para Windows Desktop
+        </div>
+
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
+          Análise de Fourier <br />
+          <span class="gradient-text">Rápida, Precisa & Visual</span>
+        </h1>
+
+        <p class="text-slate-300 text-base sm:text-lg leading-relaxed max-w-2xl">
+          Suíte científica e biblioteca Python para Windows com <strong>Quadratura de Gauss-Legendre</strong>, plotagem vetorial para artigos com Matplotlib, sintetizador acústico WAV e comandos de terminal.
+        </p>
+
+        <!-- Command Pill -->
+        <div class="p-3 bg-slate-900/90 rounded-xl border border-slate-800 flex items-center justify-between font-mono text-xs text-cyan-300 max-w-lg shadow-inner">
+          <span class="truncate">pip install git+https://github.com/londresarthur/fourier-windows.git</span>
+          <button onclick="navigator.clipboard.writeText('pip install git+https://github.com/londresarthur/fourier-windows.git'); this.innerText='✓'; setTimeout(()=>this.innerText='Copiar', 2000)" class="ml-2 px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[11px] font-sans font-medium transition-colors">
+            Copiar
+          </button>
+        </div>
+
+        <!-- CTA Buttons -->
+        <div class="flex flex-wrap items-center gap-3 pt-2">
+          <a href="https://github.com/londresarthur/fourier-windows" target="_blank" class="px-5 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-semibold transition-all shadow-lg shadow-cyan-600/30 flex items-center gap-2">
+            <span>Explorar Repositório</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+          </a>
+          <a href="https://londresarthur.github.io/usp/" target="_blank" class="px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 text-sm font-semibold transition-all flex items-center gap-2">
+            <span>Testar Simulador Web</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Live Interactive Mini-Canvas (5 cols) -->
+      <div class="lg:col-span-5">
+        <div class="glass-card rounded-2xl p-5 shadow-2xl relative overflow-hidden">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold text-cyan-400 font-mono">DEMO INTERATIVA</span>
+            <div class="flex items-center gap-2 text-[11px] font-mono text-slate-400">
+              <span>N = <strong id="demoNBadge" class="text-emerald-400 font-bold">5</strong></span>
+            </div>
+          </div>
+
+          <!-- Canvas -->
+          <div class="relative w-full aspect-video rounded-xl bg-slate-950/80 border border-slate-800 overflow-hidden mb-4">
+            <canvas id="demoCanvas" class="w-full h-full block"></canvas>
+          </div>
+
+          <!-- Controls -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between text-xs text-slate-300">
+              <label>Função:</label>
+              <select id="demoPresetSelect" class="bg-slate-900 text-slate-100 text-xs rounded-lg px-2.5 py-1 border border-slate-700">
+                <option value="abs_x">f(x) = |x|</option>
+                <option value="square">f(x) = sgn(x)</option>
+                <option value="sawtooth">f(x) = x</option>
+                <option value="triangle">f(x) = π/2 - |x|</option>
+              </select>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs text-slate-400 mb-1">
+                <span>Ordem Harmônica $N$:</span>
+              </div>
+              <input type="range" id="demoNSlider" min="0" max="30" value="5" class="w-full accent-cyan-500" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FEATURES GRID -->
+  <section class="py-16 border-t border-slate-800/60 bg-slate-950/40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-12">
+        <h2 class="text-3xl font-bold text-white tracking-tight">Recursos Científicos da Suíte Windows</h2>
+        <p class="text-slate-400 text-sm mt-3">Projetado com rigor matemático para atender pesquisadores, engenheiros e estudantes de exatas.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        <!-- Feature 1 -->
+        <div class="glass-card rounded-2xl p-6 transition-all">
+          <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-bold text-lg mb-4 border border-cyan-500/20">
+            ⚡
+          </div>
+          <h3 class="text-base font-bold text-white mb-2">Quadratura de Gauss-Legendre</h3>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            Integração numérica com pesos e nós ótimos (até 48 nós) para cálculo de coeficientes de Euler-Fourier contínuos com precisão exponencial.
+          </p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="glass-card rounded-2xl p-6 transition-all">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-lg mb-4 border border-emerald-500/20">
+            📊
+          </div>
+          <h3 class="text-base font-bold text-white mb-2">Plotagem Vetorial para Artigos</h3>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            Geração de figuras em SVG e PNG de 300 DPI prontas para relatórios e publicações, incluindo área de erro residual $L^2$ e pontos de Dirichlet.
+          </p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="glass-card rounded-2xl p-6 transition-all">
+          <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold text-lg mb-4 border border-purple-500/20">
+            🔊
+          </div>
+          <h3 class="text-base font-bold text-white mb-2">Síntese Acústica em WAV</h3>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            Sintetizador harmônico aditivo com exportação para áudio PCM WAV (44.1 kHz, 16-bit) em qualquer frequência fundamental desejada.
+          </p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="glass-card rounded-2xl p-6 transition-all">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-lg mb-4 border border-amber-500/20">
+            💻
+          </div>
+          <h3 class="text-base font-bold text-white mb-2">CLI Nativo Windows</h3>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            Comandos registrados <code>fourier-windows</code> e <code>fourier-cli</code> para executar análises, exportar LaTeX e gerar plots direto do PowerShell.
+          </p>
+        </div>
+
+        <!-- Feature 5 -->
+        <div class="glass-card rounded-2xl p-6 transition-all">
+          <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center font-bold text-lg mb-4 border border-rose-500/20">
+            📐
+          </div>
+          <h3 class="text-base font-bold text-white mb-2">Conservação de Parseval</h3>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            Verificação rigorosa da Desigualdade de Bessel e Teorema de Parseval com tracking cumulativo de energia $\eta\%$ e erro quadrático médio (MSE).
+          </p>
+        </div>
+
+        <!-- Feature 6 -->
+        <div class="glass-card rounded-2xl p-6 transition-all">
+          <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-lg mb-4 border border-blue-500/20">
+            🌀
+          </div>
+          <h3 class="text-base font-bold text-white mb-2">11 Presets Canônicos USP</h3>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            Soluções fechadas analíticas para a Série de Basel ($\pi^2/6$), extensões par/ímpar de $\pi - x$, pulsos causais e fenômeno de Gibbs (~8,95%).
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CODE & CLI SHOWCASE -->
+  <section class="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      
+      <!-- Python API Code Block -->
+      <div class="glass-card rounded-2xl p-6 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-3 text-xs text-slate-400 font-mono">
+            <span class="text-cyan-400 font-bold">🐍 Python API (`fourier_toolbox`)</span>
+            <span>exemplo.py</span>
+          </div>
+          <pre class="bg-slate-950 p-4 rounded-xl text-xs font-mono text-slate-200 overflow-x-auto border border-slate-800 leading-relaxed"><code><span class="text-purple-400">from</span> fourier_toolbox <span class="text-purple-400">import</span> FourierEngine, plot_series, synthesize_wav
+<span class="text-purple-400">import</span> numpy <span class="text-purple-400">as</span> np
+
+<span class="text-slate-500"># 1. Definir função e semiperíodo L=pi</span>
+engine = FourierEngine(
+    L=np.pi,
+    N=<span class="text-amber-300">15</span>,
+    expression_or_func=<span class="text-purple-400">lambda</span> x: np.abs(x),
+    mode=<span class="text-emerald-300">'even'</span>
+)
+
+<span class="text-slate-500"># 2. Métricas de Parseval</span>
+parseval = engine.parseval_analysis()
+<span class="text-cyan-300">print</span>(<span class="text-emerald-300">f"Energia: {parseval['conservation_ratio']*100:.2f}%"</span>)
+
+<span class="text-slate-500"># 3. Exportar figura e áudio WAV</span>
+fig, ax = plot_series(engine, show_error=<span class="text-amber-300">True</span>)
+fig.savefig(<span class="text-emerald-300">"fourier.png"</span>, dpi=<span class="text-amber-300">300</span>)
+synthesize_wav(engine, <span class="text-emerald-300">"audio.wav"</span>, base_freq=<span class="text-amber-300">220.0</span>)</code></pre>
+        </div>
+      </div>
+
+      <!-- Windows CLI Code Block -->
+      <div class="glass-card rounded-2xl p-6 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-3 text-xs text-slate-400 font-mono">
+            <span class="text-emerald-400 font-bold">💻 Windows PowerShell / CMD</span>
+            <span>fourier-windows CLI</span>
+          </div>
+          <pre class="bg-slate-950 p-4 rounded-xl text-xs font-mono text-slate-200 overflow-x-auto border border-slate-800 leading-relaxed"><code><span class="text-slate-500"># 1. Obter coeficientes analíticos e fórmula LaTeX</span>
+<span class="text-cyan-300">fourier-windows</span> --preset abs_x -N <span class="text-amber-300">15</span> --latex
+
+<span class="text-slate-500"># 2. Gerar plotagem vetorial em PNG de alta resolução</span>
+<span class="text-cyan-300">fourier-windows</span> --preset square_wave -N <span class="text-amber-300">25</span> --save-plot onda.png
+
+<span class="text-slate-500"># 3. Sintetizar áudio WAV na frequência fundamental</span>
+<span class="text-cyan-300">fourier-windows</span> --preset triangle_wave -N <span class="text-amber-300">30</span> --audio som.wav
+
+<span class="text-slate-500"># 4. Rodar testes unitários integrados</span>
+<span class="text-cyan-300">python</span> -m unittest discover -s tests</code></pre>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="mt-auto border-t border-slate-800/80 bg-slate-950 py-8 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p>© 2026 Fourier Windows — Desenvolvido com base no currículo da USP.</p>
+      <div class="flex items-center gap-4 text-slate-400">
+        <a href="https://londresarthur.github.io/usp/" target="_blank" class="hover:text-cyan-400 transition-colors">Fourier Studio Web</a>
+        <a href="https://github.com/londresarthur/fourier-windows" target="_blank" class="hover:text-cyan-400 transition-colors">GitHub Repo</a>
+        <a href="https://github.com/londresarthur/fourier-windows/tree/main/docs" target="_blank" class="hover:text-cyan-400 transition-colors">Documentação Diátaxis</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mini Interactive Canvas JS Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const canvas = document.getElementById('demoCanvas');
+      const ctx = canvas.getContext('2d');
+      const nSlider = document.getElementById('demoNSlider');
+      const nBadge = document.getElementById('demoNBadge');
+      const presetSelect = document.getElementById('demoPresetSelect');
+
+      function resizeCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * window.devicePixelRatio;
+        canvas.height = rect.height * window.devicePixelRatio;
+        draw();
+      }
+
+      function getF(x, type) {
+        if (type === 'abs_x') return Math.abs(x);
+        if (type === 'square') return x >= 0 ? 1 : -1;
+        if (type === 'sawtooth') return x;
+        if (type === 'triangle') return Math.PI / 2 - Math.abs(x);
+        return Math.abs(x);
+      }
+
+      function getFourier(x, N, type) {
+        let sum = 0;
+        if (type === 'abs_x') {
+          sum = Math.PI / 2;
+          for (let k = 1; 2 * k - 1 <= N; k++) {
+            const n = 2 * k - 1;
+            sum += (-4 / (Math.PI * n * n)) * Math.cos(n * x);
+          }
+        } else if (type === 'square') {
+          for (let k = 1; 2 * k - 1 <= N; k++) {
+            const n = 2 * k - 1;
+            sum += (4 / (Math.PI * n)) * Math.sin(n * x);
+          }
+        } else if (type === 'sawtooth') {
+          for (let n = 1; n <= N; n++) {
+            sum += (2 * Math.pow(-1, n + 1) / n) * Math.sin(n * x);
+          }
+        } else if (type === 'triangle') {
+          for (let k = 1; 2 * k - 1 <= N; k++) {
+            const n = 2 * k - 1;
+            sum += (4 / (Math.PI * n * n)) * Math.cos(n * x);
+          }
+        }
+        return sum;
+      }
+
+      function draw() {
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        const N = parseInt(nSlider.value, 10);
+        const preset = presetSelect.value;
+        const dpr = window.devicePixelRatio || 1;
+
+        // Origin and scaling
+        const xMin = -Math.PI;
+        const xMax = Math.PI;
+        const yMin = -2;
+        const yMax = 3.5;
+
+        const toCanvasX = (x) => ((x - xMin) / (xMax - xMin)) * w;
+        const toCanvasY = (y) => h - ((y - yMin) / (yMax - yMin)) * h;
+
+        // Axes
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1 * dpr;
+        ctx.beginPath();
+        ctx.moveTo(toCanvasX(xMin), toCanvasY(0));
+        ctx.lineTo(toCanvasX(xMax), toCanvasY(0));
+        ctx.moveTo(toCanvasX(0), toCanvasY(yMin));
+        ctx.lineTo(toCanvasX(0), toCanvasY(yMax));
+        ctx.stroke();
+
+        const samples = 300;
+        const dx = (xMax - xMin) / samples;
+
+        // 1. Original f(x) (Cyan)
+        ctx.strokeStyle = '#06b6d4';
+        ctx.lineWidth = 2 * dpr;
+        ctx.beginPath();
+        for (let i = 0; i <= samples; i++) {
+          const x = xMin + i * dx;
+          const y = getF(x, preset);
+          const cx = toCanvasX(x);
+          const cy = toCanvasY(y);
+          if (i === 0) ctx.moveTo(cx, cy);
+          else ctx.lineTo(cx, cy);
+        }
+        ctx.stroke();
+
+        // 2. Fourier S_N(x) (Emerald)
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 2.5 * dpr;
+        ctx.shadowColor = 'rgba(16, 185, 129, 0.6)';
+        ctx.shadowBlur = 6 * dpr;
+        ctx.beginPath();
+        for (let i = 0; i <= samples; i++) {
+          const x = xMin + i * dx;
+          const y = getFourier(x, N, preset);
+          const cx = toCanvasX(x);
+          const cy = toCanvasY(y);
+          if (i === 0) ctx.moveTo(cx, cy);
+          else ctx.lineTo(cx, cy);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+
+      nSlider.addEventListener('input', (e) => {
+        nBadge.textContent = e.target.value;
+        draw();
+      });
+
+      presetSelect.addEventListener('change', draw);
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+    });
+  </script>
+</body>
+</html>
