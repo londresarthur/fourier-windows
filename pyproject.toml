@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fourier-toolbox"
+version = "0.1.0"
+description = "Fourier series mathematical engine with numerical quadrature, presets, visualization, and audio synthesis"
+authors = [
+  { name="Author" },
+]
+requires-python = ">=3.8"
+dependencies = [
+  "numpy>=1.20",
+  "scipy>=1.7",
+  "matplotlib>=3.5"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest"
+]
+
+[project.scripts]
+fourier-toolbox = "fourier_toolbox.cli:main"
